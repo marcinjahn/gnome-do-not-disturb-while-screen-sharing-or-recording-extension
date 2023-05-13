@@ -1,0 +1,8 @@
+{
+  "name": "Do Not Disturb While Sharing Or Recording",
+  "description": "Automatically switches on Do Not Disturb mode while screen sharing or recording. As soon as screen sharing/recording is over, Do Not Disturb mode will be switched off.",
+  "uuid": "do-not-disturb-while-sharing-or-recording@marcinjahn.com",
+  "shell-version": ["44"],
+  "url": "https://github.com/marcinjahn/gnome-do-not-disturb-while-sharing-or-recording-extension",
+  "version": 1
+}
