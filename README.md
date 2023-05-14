@@ -1,5 +1,11 @@
 # Do Not Disturb While Screen Sharing Or Recording Gnome Extension
 
+<a
+href="https://extensions.gnome.org/extension/5985/do-not-disturb-while-screen-sharing-or-recording/">
+<img
+src="https://raw.githubusercontent.com/marcinjahn/gnome-quicksettings-audio-devices-hider-extension/8e9404e349a0cf6c235cf69394a6292c6eef4cae/img/get-it-on-ego.svg"
+height="100" alt="Get it on GNOME Extensions"/> </a>
+
 Automatically switches on the "Do Not Disturb" mode while screen sharing or
 screen recording. As soon as screen sharing/recording is over, "Do Not Disturb"
 mode will be switched back off.
