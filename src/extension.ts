@@ -1,6 +1,8 @@
 import { DoNotDisturbManager } from "dnd-manager";
-import { ScreenRecordingNotifier, ScreenRecordingStatus } from "screen-recording-notifier";
+import { ScreenRecordingNotifier, ScreenRecordingStatus } from "./notifiers";
 import { SettingsManager } from "settings-manager";
+import { ScreenSharingNotifier, ScreenSharingStatus } from "notifiers/screen-sharing-notifier";
+import { is_wayland_compositor } from "@gi-types/meta10";
 
 class Extension {
   private _uuid: string | null = null;
@@ -9,6 +11,8 @@ class Extension {
   private _dndManager: DoNotDisturbManager | null = null;
   private _screenRecordingNotifier: ScreenRecordingNotifier | null;
   private _screenRecordingSubId: number | null;
+  private _screenSharingNotifier: ScreenSharingNotifier | null;
+  private _screenSharingSubId: number | null;
 
   constructor(uuid: string) {
     this._uuid = uuid;
@@ -18,16 +22,50 @@ class Extension {
     log(`Enabling extension ${this._uuid}`);
 
     this._settings = new SettingsManager();
+
+    this.checkCompositor();
+
     this._screenRecordingNotifier = new ScreenRecordingNotifier();
+    this._screenSharingNotifier = new ScreenSharingNotifier();
     this._dndManager = new DoNotDisturbManager();
 
-    this._screenRecordingSubId = this._screenRecordingNotifier.subscribe((status) => {
-      if (status === ScreenRecordingStatus.recording) {
-        this._dndManager?.turnOn();
-      } else {
-        this._dndManager?.turnOff();
-      }
-    });
+    this._screenRecordingSubId = this._screenRecordingNotifier.subscribe(
+      this.handleScreenRecording.bind(this));
+
+    this._screenSharingSubId = this._screenSharingNotifier.subscribe(
+      this.handleScreenSharing.bind(this));
+  }
+
+  private checkCompositor() {
+    if (!is_wayland_compositor()) {
+      this._settings?.setIsWayland(false);
+    } else {
+      this._settings?.setIsWayland(true);
+    }
+  }
+
+  private handleScreenSharing(status: ScreenSharingStatus) {
+    if (!this._settings?.getShouldDndOnScreenSharing()) {
+      return;
+    }
+    
+    if (status === ScreenSharingStatus.sharing) {
+      this._dndManager?.turnDndOn();
+    } else {
+      this._dndManager?.turnDndOff();
+    }
+  }
+
+  private handleScreenRecording(status: ScreenRecordingStatus) {
+    if (!this._settings?.getShouldDndOnScreenRecording()) {
+      return;
+    }
+    
+    if (status === ScreenRecordingStatus.recording) {
+      this._dndManager?.turnDndOn();
+    } else {
+      this._dndManager?.turnDndOff();
+    }
   }
 
   disable() {
@@ -43,6 +81,12 @@ class Extension {
       this._screenRecordingSubId = null;
     }
     this._screenRecordingNotifier = null;
+
+    if (this._screenSharingSubId) {
+      this._screenSharingNotifier?.unsubscribe(this._screenSharingSubId);
+      this._screenSharingSubId = null;
+    }
+    this._screenSharingNotifier = null;
 
     this._dndManager?.dispose();
     this._dndManager = null;

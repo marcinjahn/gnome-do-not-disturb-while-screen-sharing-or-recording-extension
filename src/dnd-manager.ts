@@ -14,11 +14,11 @@ export class DoNotDisturbManager {
     return this._settings;
   }
 
-  turnOn() {
+  turnDndOn() {
     this.getSettings().set_boolean(showBannersSetting, false);
   }
 
-  turnOff() {
+  turnDndOff() {
     this.getSettings().set_boolean(showBannersSetting, true);
   }
 

@@ -11,36 +11,33 @@ function init() {}
 
 function fillPreferencesWindow(window: PreferencesWindow) {
   const page = new PreferencesPage();
+
+  const settings = new SettingsManager();
+
+  const group = new PreferencesGroup({
+    title: "Automatic Do Not Disturb Mode",
+    description: "Select what events should cause Do Not Disturb mode to be switched on automatically",
+  });
+
+  setupScreenRecording(settings, group);
+  setupScreenSharing(settings, group);
+
+  page.add(group);
   window.add(page);
-
-  let settings = new SettingsManager();
-
-  setupPastEventsSettings(page, settings);
-  setupOngoingEventsSettings(page, settings);
 }
 
-function setupPastEventsSettings(
-  page: PreferencesPage,
-  settings: SettingsManager
-) {
-  const group = new PreferencesGroup({
-    title: "Past Events",
-    description: "Settings related to events that are over",
-  });
-
+function setupScreenRecording(settings: SettingsManager, group: PreferencesGroup) {
   const row = new ActionRow({
-    title: "Style events in past days as well",
-    subtitle:
-      "When viewing past days in the panel, the events will be greyed out",
+    title: "Screen Recording"
   });
 
   const toggle = new Switch({
-    // active: settings.getShouldStylePastDays(),
+    active: settings.getShouldDndOnScreenRecording(),
     valign: Align.CENTER,
   });
 
   toggle.connect("state-set", (_, state) => {
-    // settings.setShouldStylePastDays(state);
+    settings.setShouldDndOnScreenRecording(state);
 
     return false;
   });
@@ -49,30 +46,28 @@ function setupPastEventsSettings(
   row.activatable_widget = toggle;
 
   group.add(row);
-  page.add(group);
 }
 
-function setupOngoingEventsSettings(
-  page: PreferencesPage,
-  settings: SettingsManager
-) {
-  const group = new PreferencesGroup({
-    title: "Ongoing Events",
-    description: "Settings related to events that are ongoing",
-  });
+function setupScreenSharing(settings: SettingsManager, group: PreferencesGroup) {
+  const isWayland = settings.getIsWayland();
+  
 
   const row = new ActionRow({
-    title: "Highlight ongoing events",
-    subtitle: "Will color events that are ongoing with system accent color",
+    title: "Screen Sharing",
+    subtitle: !isWayland ? 
+      "Disabled, since it works only on Wayland sessions, and you are running X11" :
+      "",
+    sensitive: isWayland
   });
 
   const toggle = new Switch({
-    // active: settings.getShouldStylePastDays(),
+    active: isWayland ? settings.getShouldDndOnScreenSharing() : false,
     valign: Align.CENTER,
+    sensitive: isWayland
   });
 
   toggle.connect("state-set", (_, state) => {
-    // settings.setShouldStyleOngoingEvents(state);
+    settings.setShouldDndOnScreenSharing(state);
 
     return false;
   });
@@ -81,7 +76,7 @@ function setupOngoingEventsSettings(
   row.activatable_widget = toggle;
 
   group.add(row);
-  page.add(group);
 }
+
 
 export default { init, fillPreferencesWindow };

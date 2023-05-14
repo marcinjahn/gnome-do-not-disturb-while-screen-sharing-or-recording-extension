@@ -1,5 +1,5 @@
 {
-  "name": "gnome-do-not-disturb-while-sharing-or-recording-extension",
+  "name": "gnome-do-not-disturb-while-screen-sharing-or-recording-extension",
   "version": "1.0.0",
   "description": "A Gnome Shell extension that crosses out events that already happened",
   "main": "extension.js",
@@ -8,10 +8,10 @@
     "clean": "rm -rf ./dist",
     "build": "glib-compile-schemas resources/schemas/ && npm run clean && rollup -c",
     "start:dev:wayland": "npm run build && dbus-run-session -- gnome-shell --nested --wayland",
-    "linkdist": "ln -s \"$PWD/dist\" \"$HOME/.local/share/gnome-shell/extensions/do-not-disturb-while-sharing-or-recording@marcinjahn.com\"",
-    "zip": "npm run build && rm -rf './dist/do-not-disturb-while-sharing-or-recording@marcinjahn.com.zip' && cd ./dist && zip -qr 'do-not-disturb-while-sharing-or-recording@marcinjahn.com.zip' .",
+    "linkdist": "ln -s \"$PWD/dist\" \"$HOME/.local/share/gnome-shell/extensions/do-not-disturb-while-screen-sharing-or-recording@marcinjahn.com\"",
+    "zip": "npm run build && rm -rf './dist/do-not-disturb-while-screen-sharing-or-recording@marcinjahn.com.zip' && cd ./dist && zip -qr 'do-not-disturb-while-screen-sharing-or-recording@marcinjahn.com.zip' .",
     "bump-version": "./scripts/bump-version.sh",
-    "log:extension": "journalctl -f -o cat GNOME_SHELL_EXTENSION_UUID=do-not-disturb-while-sharing-or-recording@marcinjahn.com",
+    "log:extension": "journalctl -f -o cat GNOME_SHELL_EXTENSION_UUID=do-not-disturb-while-screen-sharing-or-recording@marcinjahn.com",
     "log:prefs": "journalctl -f -o cat /usr/bin/gjs"
   },
   "author": "Marcin Jahn <jahnmarcin@outlook.com>",
@@ -34,6 +34,7 @@
     "@gi-types/adw1": "^1.1.1",
     "@gi-types/gio2": "^2.72.1",
     "@gi-types/gtk4": "^4.6.1",
+    "@gi-types/meta10": "^10.0.1",
     "typescript": "5.0.4"
   }
 }
