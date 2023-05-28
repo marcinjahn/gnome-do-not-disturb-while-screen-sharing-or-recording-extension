@@ -1,4 +1,4 @@
-# Do Not Disturb While Screen Sharing Or Recording Gnome Extension
+# <img width="32px" src="./img/icon-128.webp" alt="project icon" /> Do Not Disturb While Screen Sharing Or Recording Gnome Extension
 
 <a
 href="https://extensions.gnome.org/extension/5985/do-not-disturb-while-screen-sharing-or-recording/">
