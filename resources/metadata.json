@@ -2,7 +2,7 @@
   "name": "Do Not Disturb While Screen Sharing Or Recording",
   "description": "Automatically switches on the \"Do Not Disturb\" mode while screen sharing or screen recording. As soon as screen sharing/recording is over, \"Do Not Disturb\" mode will be switched back off.\nDo Not Disturb mode stops notifications from appearing on your screen to let you focus on your work. Notifications may contain sensitive content that you might not want to show to everyone while you're screen-sharing.\nNote that screen sharing will toogle \"Do Not Disturb\" only on Wayland sessions. X11 is not supported! However, screen recording toggle will work on both Wayland and X11.\nIt is likely that not all screen recording apps will trigger the extension to do its job. The extension was tested with the Gnome built-in screen recorder.",
   "uuid": "do-not-disturb-while-screen-sharing-or-recording@marcinjahn.com",
-  "shell-version": ["44"],
+  "shell-version": ["45"],
   "url": "https://github.com/marcinjahn/gnome-do-not-disturb-while-screen-sharing-or-recording-extension",
   "version": 1
 }

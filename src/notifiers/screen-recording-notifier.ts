@@ -1,16 +1,14 @@
-const Main = imports.ui.main;
+import * as Main from "gnomejs://main.js";
 
 export class ScreenRecordingNotifier {
   subscribe(handler: (status: ScreenRecordingStatus) => void): number {
-    return Main.screenshotUI.connect(
-      'notify::screencast-in-progress',
-      () => {
-        const status = Main.screenshotUI.screencast_in_progress ?
-          ScreenRecordingStatus.recording : 
-          ScreenRecordingStatus.notRecording;
+    return Main.screenshotUI.connect("notify::screencast-in-progress", () => {
+      const status = Main.screenshotUI.screencast_in_progress
+        ? ScreenRecordingStatus.recording
+        : ScreenRecordingStatus.notRecording;
 
-        handler(status);
-      });
+      handler(status);
+    });
   }
 
   unsubscribe(subscriptionId: number) {
@@ -20,5 +18,5 @@ export class ScreenRecordingNotifier {
 
 export enum ScreenRecordingStatus {
   recording,
-  notRecording
+  notRecording,
 }

@@ -1,4 +1,4 @@
-import { is_wayland_compositor } from '@gi-types/meta10';
+import Meta from "@gi-types/meta10";
 
 export class ScreenSharingNotifier {
   private _handlesCount: number;
@@ -6,25 +6,28 @@ export class ScreenSharingNotifier {
   private _controller: any;
 
   subscribe(handler: (status: ScreenSharingStatus) => void): number | null {
-
-    if (!is_wayland_compositor()) {
-      log('WARN: ScreenSharingNotifier does not support compositors other than Wayland. Not subscribing.')
+    if (!Meta.is_wayland_compositor()) {
+      log(
+        "WARN: ScreenSharingNotifier does not support compositors other than Wayland. Not subscribing."
+      );
       return null;
     }
 
     this._controller = global.backend.get_remote_access_controller();
 
     if (!this._controller) {
-      log('WARN: Subscription to screen sharing status failed, the remote access controller cannot be retrieved');
+      log(
+        "WARN: Subscription to screen sharing status failed, the remote access controller cannot be retrieved"
+      );
       return null;
     }
 
-    return this._controller.connect('new-handle', (_, handle: Handle) => {
+    return this._controller.connect("new-handle", (_, handle: Handle) => {
       if (handle.is_recording) {
         return;
       }
 
-      const stopId = handle.connect('stopped', () => {
+      const stopId = handle.connect("stopped", () => {
         handle.disconnect(stopId);
         this._handles.delete(stopId);
 
@@ -50,11 +53,11 @@ export class ScreenSharingNotifier {
 
 interface Handle {
   is_recording: boolean;
-  connect: (event: 'stopped', handler: () => void) => number;
+  connect: (event: "stopped", handler: () => void) => number;
   disconnect: (_: number) => void;
 }
 
 export enum ScreenSharingStatus {
   sharing,
-  notSharing
+  notSharing,
 }

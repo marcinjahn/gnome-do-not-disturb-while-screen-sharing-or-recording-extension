@@ -1,11 +1,16 @@
+import { Extension } from "gnomejs://extension.js";
+
+import Meta from "@gi-types/meta10";
+
 import { DoNotDisturbManager } from "dnd-manager";
 import { ScreenRecordingNotifier, ScreenRecordingStatus } from "./notifiers";
-import { SettingsManager } from "settings-manager";
-import { ScreenSharingNotifier, ScreenSharingStatus } from "notifiers/screen-sharing-notifier";
-import { is_wayland_compositor } from "@gi-types/meta10";
+import { SettingsManager, SettingsPath } from "settings-manager";
+import {
+  ScreenSharingNotifier,
+  ScreenSharingStatus,
+} from "notifiers/screen-sharing-notifier";
 
-class Extension {
-  private _uuid: string | null = null;
+export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends Extension {
   private _settings: SettingsManager | null = null;
   private _settingsSubscription: number | null = null;
   private _dndManager: DoNotDisturbManager | null = null;
@@ -14,14 +19,10 @@ class Extension {
   private _screenSharingNotifier: ScreenSharingNotifier | null;
   private _screenSharingSubId: number | null;
 
-  constructor(uuid: string) {
-    this._uuid = uuid;
-  }
-
   enable() {
-    log(`Enabling extension ${this._uuid}`);
+    log(`Enabling extension ${this.uuid}`);
 
-    this._settings = new SettingsManager();
+    this._settings = new SettingsManager(this.getSettings(SettingsPath));
 
     this.checkCompositor();
 
@@ -30,14 +31,16 @@ class Extension {
     this._dndManager = new DoNotDisturbManager();
 
     this._screenRecordingSubId = this._screenRecordingNotifier.subscribe(
-      this.handleScreenRecording.bind(this));
+      this.handleScreenRecording.bind(this)
+    );
 
     this._screenSharingSubId = this._screenSharingNotifier.subscribe(
-      this.handleScreenSharing.bind(this));
+      this.handleScreenSharing.bind(this)
+    );
   }
 
   private checkCompositor() {
-    if (!is_wayland_compositor()) {
+    if (!Meta.is_wayland_compositor()) {
       this._settings?.setIsWayland(false);
     } else {
       this._settings?.setIsWayland(true);
@@ -48,7 +51,7 @@ class Extension {
     if (!this._settings?.getShouldDndOnScreenSharing()) {
       return;
     }
-    
+
     if (status === ScreenSharingStatus.sharing) {
       this._dndManager?.turnDndOn();
     } else {
@@ -60,7 +63,7 @@ class Extension {
     if (!this._settings?.getShouldDndOnScreenRecording()) {
       return;
     }
-    
+
     if (status === ScreenRecordingStatus.recording) {
       this._dndManager?.turnDndOn();
     } else {
@@ -69,7 +72,7 @@ class Extension {
   }
 
   disable() {
-    log(`Disabling extension ${this._uuid}`);
+    log(`Disabling extension ${this.uuid}`);
 
     if (this._settingsSubscription) {
       this._settings?.disconnect(this._settingsSubscription!);
@@ -91,11 +94,6 @@ class Extension {
     this._dndManager?.dispose();
     this._dndManager = null;
 
-    this._settings?.dispose();
     this._settings = null;
   }
-}
-
-export default function (meta: { uuid: string }): Extension {
-  return new Extension(meta.uuid);
 }

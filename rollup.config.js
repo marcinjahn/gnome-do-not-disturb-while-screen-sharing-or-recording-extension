@@ -3,23 +3,34 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import cleanup from "rollup-plugin-cleanup";
 import copy from "rollup-plugin-copy";
-import styles from "rollup-plugin-styles";
 
 const buildPath = "dist";
 
-const globals = {
-  "@gi-types/gtk4": "imports.gi.Gtk",
-  "@gi-types/adw1": "imports.gi.Adw",
-  "@gi-types/gio2": "imports.gi.Gio",
-  '@gi-types/meta10': 'imports.gi.Meta',
+const commonPaths = {
+  "@gi-ts/adw1": "gi://Adw",
+  "@gi-ts/gtk4": "gi://Gtk?version=4.0",
+  "@gi-types/gvc1": "gi://Gvc",
+  "@gi-ts/glib2": "gi://GLib",
+  "@gi-ts/gio2": "gi://Gio",
+  "@gi-types/meta10": "gi://Meta",
 };
 
-const external = [...Object.keys(globals)];
+const extensionPaths = {
+  ...commonPaths,
+  "gnomejs://extension.js":
+    "resource:///org/gnome/shell/extensions/extension.js",
+  "gnomejs://main.js": "resource:///org/gnome/shell/ui/main.js",
+  "gnomejs://volume.js": "resource:///org/gnome/shell/ui/status/volume.js",
+};
 
-const prefsFooter = [
-  "var init = prefs.init;",
-  "var fillPreferencesWindow = prefs.fillPreferencesWindow;",
-].join("\n");
+const prefsPaths = {
+  ...commonPaths,
+  "gnomejs://prefs.js":
+    "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js",
+  "gnomejs://main.js": "resource:///org/gnome/Shell/Extensions/js/ui/main.js",
+  "gnomejs://volume.js":
+    "resource:///org/gnome/Shell/Extensions/js/ui/status/volume.js",
+};
 
 export default [
   {
@@ -29,13 +40,12 @@ export default [
     },
     output: {
       file: `${buildPath}/extension.js`,
-      format: "iife",
+      format: "es",
       name: "init",
       exports: "default",
-      globals,
+      paths: extensionPaths,
       assetFileNames: "[name][extname]",
     },
-    external,
     plugins: [
       commonjs(),
       nodeResolve({
@@ -44,9 +54,9 @@ export default [
       typescript({
         tsconfig: "./tsconfig.json",
       }),
-      styles({
-        mode: ["extract", `stylesheet.css`],
-      }),
+      // styles({
+      //   mode: ["extract", `stylesheet.css`],
+      // }),
       copy({
         targets: [
           { src: "./resources/metadata.json", dest: `${buildPath}` },
@@ -62,16 +72,14 @@ export default [
     input: "src/prefs.ts",
     output: {
       file: `${buildPath}/prefs.js`,
-      format: "iife",
+      format: "es",
       exports: "default",
       name: "prefs",
-      globals,
-      footer: prefsFooter,
+      paths: prefsPaths,
     },
     treeshake: {
       moduleSideEffects: "no-external",
     },
-    external,
     plugins: [
       commonjs(),
       nodeResolve({
