@@ -20,7 +20,7 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
   private _screenSharingSubId: number | null;
 
   enable() {
-    log(`Enabling extension ${this.uuid}`);
+    console.log(`Enabling extension ${this.uuid}`);
 
     this._settings = new SettingsManager(this.getSettings(SettingsPath));
 
@@ -72,7 +72,7 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
   }
 
   disable() {
-    log(`Disabling extension ${this.uuid}`);
+    console.log(`Disabling extension ${this.uuid}`);
 
     if (this._settingsSubscription) {
       this._settings?.disconnect(this._settingsSubscription!);

@@ -8,7 +8,7 @@ const buildPath = "dist";
 
 const commonPaths = {
   "@gi-ts/adw1": "gi://Adw",
-  "@gi-ts/gtk4": "gi://Gtk?version=4.0",
+  "@gi-ts/gtk4": "gi://Gtk",
   "@gi-types/gvc1": "gi://Gvc",
   "@gi-ts/glib2": "gi://GLib",
   "@gi-ts/gio2": "gi://Gio",

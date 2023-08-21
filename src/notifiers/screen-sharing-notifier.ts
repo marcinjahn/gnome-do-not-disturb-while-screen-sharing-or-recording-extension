@@ -7,8 +7,8 @@ export class ScreenSharingNotifier {
 
   subscribe(handler: (status: ScreenSharingStatus) => void): number | null {
     if (!Meta.is_wayland_compositor()) {
-      log(
-        "WARN: ScreenSharingNotifier does not support compositors other than Wayland. Not subscribing."
+      console.warn(
+        '"Do Not Disturb While Screen Sharing or Recording" extension does not support compositors other than Wayland. Subscription will not be created. If you\'re using X11 exlusively, disable or remove this extension since it will not work anyway.'
       );
       return null;
     }
@@ -16,8 +16,8 @@ export class ScreenSharingNotifier {
     this._controller = global.backend.get_remote_access_controller();
 
     if (!this._controller) {
-      log(
-        "WARN: Subscription to screen sharing status failed, the remote access controller cannot be retrieved"
+      console.warn(
+        "Subscription to screen sharing status failed, the remote access controller cannot be retrieved"
       );
       return null;
     }
