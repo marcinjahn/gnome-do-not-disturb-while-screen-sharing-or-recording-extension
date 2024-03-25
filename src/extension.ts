@@ -3,12 +3,8 @@ import { Extension } from "gnomejs://extension.js";
 import Meta from "@gi-types/meta10";
 
 import { DoNotDisturbManager } from "dnd-manager";
-import { ScreenRecordingNotifier, ScreenRecordingStatus } from "./notifiers";
+import { ScreenRecordingNotifier, ScreenRecordingStatus, ScreenSharingNotifier, ScreenSharingStatus } from "./notifiers";
 import { SettingsManager, SettingsPath } from "settings-manager";
-import {
-  ScreenSharingNotifier,
-  ScreenSharingStatus,
-} from "notifiers/screen-sharing-notifier";
 
 export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends Extension {
   private _settings: SettingsManager | null = null;
