@@ -6,11 +6,13 @@ export const SettingsPath =
 const DoNotDisturbOnScreenSharingSetting = "dnd-on-screen-sharing";
 const DoNotDisturbOnScreenRecordingSetting = "dnd-on-screen-recording";
 const IsWaylandSetting = "is-wayland";
+const WasDoNotDisturbActiveSetting = "was-dnd-active";
 
 type AvailableSettings =
   | "dnd-on-screen-sharing"
   | "dnd-on-screen-recording"
-  | "is-wayland";
+  | "is-wayland"
+  | "was-dnd-active";
 
 export class SettingsManager {
   private settings: Gio.Settings;
@@ -41,6 +43,14 @@ export class SettingsManager {
 
   setIsWayland(value: boolean) {
     this.settings.set_boolean(IsWaylandSetting, value);
+  }
+
+  getWasDoNotDisturbActive(): boolean {
+    return this.settings.get_boolean(WasDoNotDisturbActiveSetting);
+  }
+
+  setWasDoNotDisturbActive(value: boolean) {
+    this.settings.set_boolean(WasDoNotDisturbActiveSetting, value);
   }
 
   connectToChanges(settingName: AvailableSettings, func: () => void): number {

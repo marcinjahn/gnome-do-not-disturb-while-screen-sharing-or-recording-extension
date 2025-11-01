@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="org.gnome.shell.extensions.do-not-disturb-while-screen-sharing-or-recording" 
+  <schema id="org.gnome.shell.extensions.do-not-disturb-while-screen-sharing-or-recording"
           path="/org/gnome/shell/extensions/do-not-disturb-while-screen-sharing-or-recording/">
     <!-- See also: https://docs.gtk.org/glib/gvariant-format-strings.html -->
     <key name="dnd-on-screen-sharing" type="b">
@@ -14,6 +14,10 @@
     <key name="is-wayland" type="b">
       <default>true</default>
       <description>Internal state informing prefs if Wayland session is running</description>
+    </key>
+    <key name="was-dnd-active" type="b">
+      <default>false</default>
+      <description>DND status when the automatic DND was activated (internal state)</description>
     </key>
   </schema>
 </schemalist>
