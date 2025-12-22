@@ -10,6 +10,9 @@ declare module "gnomejs://main.js" {
     _deviceItems: Map<number, DeviceItem>;
     _removeDevice: (id: number) => void;
     _addDevice: (id: number) => void;
+    connect: (text: string, cb: () => void) => number;
+    disconnect: (id: number) => void;
+    visible: boolean;
   };
 
   export const panel: {

@@ -3,6 +3,10 @@
   <schema id="org.gnome.shell.extensions.do-not-disturb-while-screen-sharing-or-recording" 
           path="/org/gnome/shell/extensions/do-not-disturb-while-screen-sharing-or-recording/">
     <!-- See also: https://docs.gtk.org/glib/gvariant-format-strings.html -->
+    <key name="dnd-on-audio-input" type="b">
+      <default>false</default>
+      <description>Decides whether Do Not Disturb should be automatically switched on if an audio input is recording</description>
+    </key>
     <key name="dnd-on-screen-sharing" type="b">
       <default>true</default>
       <description>Decides whether Do Not Disturb should be automatically switched on while screen sharing</description>

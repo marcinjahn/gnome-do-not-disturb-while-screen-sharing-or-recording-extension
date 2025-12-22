@@ -3,7 +3,14 @@ import { Extension } from "gnomejs://extension.js";
 import Meta from "@gi-types/meta10";
 
 import { DoNotDisturbManager } from "dnd-manager";
-import { ScreenRecordingNotifier, ScreenRecordingStatus, ScreenSharingNotifier, ScreenSharingStatus } from "./notifiers";
+import {
+  ScreenRecordingNotifier,
+  ScreenRecordingStatus,
+  ScreenSharingNotifier,
+  ScreenSharingStatus,
+  AudioInputNotifier,
+  AudioInputStatus,
+} from "./notifiers";
 import { SettingsManager, SettingsPath } from "settings-manager";
 
 export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends Extension {
@@ -14,6 +21,8 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
   private _screenRecordingSubId: number | null;
   private _screenSharingNotifier: ScreenSharingNotifier | null;
   private _screenSharingSubId: number | null;
+  private _audioInputNotifier: AudioInputNotifier | null;
+  private _audioInputSubId: number | null;
 
   enable() {
     console.log(`Enabling extension ${this.uuid}`);
@@ -24,6 +33,7 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
 
     this._screenRecordingNotifier = new ScreenRecordingNotifier();
     this._screenSharingNotifier = new ScreenSharingNotifier();
+    this._audioInputNotifier = new AudioInputNotifier();
     this._dndManager = new DoNotDisturbManager();
 
     this._screenRecordingSubId = this._screenRecordingNotifier.subscribe(
@@ -32,6 +42,10 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
 
     this._screenSharingSubId = this._screenSharingNotifier.subscribe(
       this.handleScreenSharing.bind(this)
+    );
+
+    this._audioInputSubId = this._audioInputNotifier.subscribe(
+      this.handleAudioInput.bind(this)
     );
   }
 
@@ -67,6 +81,18 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
     }
   }
 
+  private handleAudioInput(status: AudioInputStatus) {
+    if (!this._settings?.getShouldDndOnAudioInput()) {
+      return;
+    }
+
+    if (status === AudioInputStatus.active) {
+      this._dndManager?.turnDndOn();
+    } else {
+      this._dndManager?.turnDndOff();
+    }
+  }
+
   disable() {
     console.log(`Disabling extension ${this.uuid}`);
 
@@ -86,6 +112,12 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
       this._screenSharingSubId = null;
     }
     this._screenSharingNotifier = null;
+
+    if (this._audioInputSubId) {
+      this._audioInputNotifier?.unsubscribe(this._audioInputSubId);
+      this._audioInputSubId = null;
+    }
+    this._audioInputNotifier = null;
 
     this._dndManager?.dispose();
     this._dndManager = null;

@@ -19,6 +19,7 @@ export default class Preferences extends ExtensionPreferences {
 
     this.setupScreenRecording(settings, group);
     this.setupScreenSharing(settings, group);
+    this.setupAudioInput(settings, group);
 
     page.add(group);
     window.add(page);
@@ -65,6 +66,28 @@ export default class Preferences extends ExtensionPreferences {
 
     toggle.connect("state-set", (_, state) => {
       settings.setShouldDndOnScreenSharing(state);
+
+      return false;
+    });
+
+    row.add_suffix(toggle);
+    row.activatable_widget = toggle;
+
+    group.add(row);
+  }
+
+  setupAudioInput(settings: SettingsManager, group: Adw.PreferencesGroup) {
+    const row = new Adw.ActionRow({
+      title: "Audio Input",
+    });
+
+    const toggle = new Gtk.Switch({
+      active: settings.getShouldDndOnAudioInput(),
+      valign: Gtk.Align.CENTER,
+    });
+
+    toggle.connect("state-set", (_, state) => {
+      settings.setShouldDndOnAudioInput(state);
 
       return false;
     });

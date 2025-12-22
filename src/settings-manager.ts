@@ -5,9 +5,11 @@ export const SettingsPath =
 
 const DoNotDisturbOnScreenSharingSetting = "dnd-on-screen-sharing";
 const DoNotDisturbOnScreenRecordingSetting = "dnd-on-screen-recording";
+const DoNotDisturbOnAudioInputSetting = "dnd-on-audio-input";
 const IsWaylandSetting = "is-wayland";
 
 type AvailableSettings =
+  | "dnd-on-audio-input"
   | "dnd-on-screen-sharing"
   | "dnd-on-screen-recording"
   | "is-wayland";
@@ -33,6 +35,14 @@ export class SettingsManager {
 
   setShouldDndOnScreenRecording(value: boolean) {
     this.settings.set_boolean(DoNotDisturbOnScreenRecordingSetting, value);
+  }
+
+  getShouldDndOnAudioInput(): boolean {
+    return this.settings.get_boolean(DoNotDisturbOnAudioInputSetting);
+  }
+
+  setShouldDndOnAudioInput(value: boolean) {
+    this.settings.set_boolean(DoNotDisturbOnAudioInputSetting, value);
   }
 
   getIsWayland(): boolean {
