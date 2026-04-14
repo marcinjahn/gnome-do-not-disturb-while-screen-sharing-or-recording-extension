@@ -14,10 +14,6 @@ Do Not Disturb mode stops notifications from appearing on your screen to let you
 focus on your work. Notifications may contain sensitive content that you might
 not want to show to everyone while you're screen-sharing.
 
-Note that screen sharing will toogle "Do Not Disturb" only on Wayland sessions.
-X11 is not supported! However, screen recording toggle will work on both Wayland
-and X11.
-
 It is likely that not all screen recording apps will trigger the extension to do
 its job. The extension was tested with the Gnome built-in screen recorder.
 
@@ -56,5 +52,4 @@ Manager](https://flathub.org/apps/com.mattjakeman.ExtensionManager)).
 Anytime you change anything, rebuild the extension with `npm run build`, and
 restart the session:
 
-- on Wayland, log out and log in (I know, it's painful),
-- on X11, open "Run a Command" dialog (Alt + F2), type "r" and press Enter
+- on Wayland, log out and log in (I know, it's painful)

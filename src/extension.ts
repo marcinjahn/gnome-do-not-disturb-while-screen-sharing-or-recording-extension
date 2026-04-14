@@ -1,9 +1,12 @@
 import { Extension } from "gnomejs://extension.js";
 
-import Meta from "@gi-types/meta10";
-
 import { DoNotDisturbManager } from "dnd-manager";
-import { ScreenRecordingNotifier, ScreenRecordingStatus, ScreenSharingNotifier, ScreenSharingStatus } from "./notifiers";
+import {
+  ScreenRecordingNotifier,
+  ScreenRecordingStatus,
+  ScreenSharingNotifier,
+  ScreenSharingStatus,
+} from "./notifiers";
 import { SettingsManager, SettingsPath } from "settings-manager";
 
 export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends Extension {
@@ -20,8 +23,6 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
 
     this._settings = new SettingsManager(this.getSettings(SettingsPath));
 
-    this.checkCompositor();
-
     this._screenRecordingNotifier = new ScreenRecordingNotifier();
     this._screenSharingNotifier = new ScreenSharingNotifier();
     this._dndManager = new DoNotDisturbManager();
@@ -33,14 +34,6 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
     this._screenSharingSubId = this._screenSharingNotifier.subscribe(
       this.handleScreenSharing.bind(this)
     );
-  }
-
-  private checkCompositor() {
-    if (!Meta.is_wayland_compositor()) {
-      this._settings?.setIsWayland(false);
-    } else {
-      this._settings?.setIsWayland(true);
-    }
   }
 
   private handleScreenSharing(status: ScreenSharingStatus) {

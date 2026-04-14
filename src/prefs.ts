@@ -47,20 +47,13 @@ export default class Preferences extends ExtensionPreferences {
   }
 
   setupScreenSharing(settings: SettingsManager, group: Adw.PreferencesGroup) {
-    const isWayland = settings.getIsWayland();
-
     const row = new Adw.ActionRow({
       title: "Screen Sharing",
-      subtitle: !isWayland
-        ? "Disabled, since it works only on Wayland sessions, and you are running X11"
-        : "",
-      sensitive: isWayland,
     });
 
     const toggle = new Gtk.Switch({
-      active: isWayland ? settings.getShouldDndOnScreenSharing() : false,
+      active: settings.getShouldDndOnScreenSharing(),
       valign: Gtk.Align.CENTER,
-      sensitive: isWayland,
     });
 
     toggle.connect("state-set", (_, state) => {

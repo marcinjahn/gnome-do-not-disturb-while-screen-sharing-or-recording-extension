@@ -1,18 +1,9 @@
-import Meta from "@gi-types/meta10";
-
 export class ScreenSharingNotifier {
   private _handlesCount: number;
   private _handles: Map<number, Handle> = new Map<number, Handle>();
   private _controller: any;
 
   subscribe(handler: (status: ScreenSharingStatus) => void): number | null {
-    if (!Meta.is_wayland_compositor()) {
-      console.warn(
-        '"Do Not Disturb While Screen Sharing or Recording" extension does not support compositors other than Wayland. Subscription will not be created. If you\'re using X11 exlusively, disable or remove this extension since it will not work anyway.'
-      );
-      return null;
-    }
-
     this._controller = global.backend.get_remote_access_controller();
 
     if (!this._controller) {

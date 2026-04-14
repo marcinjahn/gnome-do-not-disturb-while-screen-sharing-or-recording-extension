@@ -11,9 +11,5 @@
       <default>true</default>
       <description>Decides whether Do Not Disturb should be automatically switched on while screen recording</description>
     </key>
-    <key name="is-wayland" type="b">
-      <default>true</default>
-      <description>Internal state informing prefs if Wayland session is running</description>
-    </key>
   </schema>
 </schemalist>
