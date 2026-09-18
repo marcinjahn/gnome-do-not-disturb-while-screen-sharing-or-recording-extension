@@ -6,9 +6,10 @@ href="https://extensions.gnome.org/extension/5985/do-not-disturb-while-screen-sh
 src="https://raw.githubusercontent.com/marcinjahn/gnome-quicksettings-audio-devices-hider-extension/8e9404e349a0cf6c235cf69394a6292c6eef4cae/img/get-it-on-ego.svg"
 height="100" alt="Get it on GNOME Extensions"/> </a>
 
-Automatically switches on the "Do Not Disturb" mode while screen sharing or
-screen recording. As soon as screen sharing/recording is over, "Do Not Disturb"
-mode will be switched back off.
+Automatically switches on the "Do Not Disturb" mode while screen sharing,
+screen recording, an application is in full screen, or a chosen application
+(e.g. a game) is running. As soon as none of the enabled triggers are active
+anymore, "Do Not Disturb" mode will be switched back off.
 
 Do Not Disturb mode stops notifications from appearing on your screen to let you
 focus on your work. Notifications may contain sensitive content that you might
@@ -22,6 +23,15 @@ its job. The extension was tested with the Gnome built-in screen recorder.
 ## Configuration
 
 You are able to configure the following options:
+
+- Screen Recording - enables Do Not Disturb while the screen is being recorded
+- Screen Sharing - enables Do Not Disturb while the screen is being shared
+- Full Screen Application - enables Do Not Disturb while any application is
+  running in full screen
+- Specific Applications - enables Do Not Disturb while any application from a
+  user-defined list is running (e.g. games). Applications are matched by their
+  `WM_CLASS`, which can be found by running `xprop WM_CLASS` in a terminal and
+  then clicking on the application's window.
 
 ![Extension preferences](./img/preferences.png)
 
