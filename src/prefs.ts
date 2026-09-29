@@ -24,12 +24,13 @@ export default class Preferences extends ExtensionPreferences {
     page.add(group);
 
     const appsGroup = new Adw.PreferencesGroup({
-      title: "Applications List",
+      title: "Applications & Directories Lists",
       description:
-        "Switch Do Not Disturb mode on automatically while any of the listed applications is running (e.g. games)",
+        "Switch Do Not Disturb mode on automatically while any of the listed applications is running, or while an application from within any of the listed directories is running (e.g. games)",
     });
 
     this.setupAppsList(settings, appsGroup);
+    this.setupDirectoriesList(settings, appsGroup);
 
     page.add(appsGroup);
 
@@ -193,6 +194,102 @@ export default class Preferences extends ExtensionPreferences {
     expander.add_row(entryRow);
 
     refreshAppRows();
+
+    group.add(expander);
+  }
+
+  setupDirectoriesList(settings: SettingsManager, group: Adw.PreferencesGroup) {
+    const expander = new Adw.ExpanderRow({
+      title: "Directories List",
+      subtitle:
+        "Add directories (e.g. ~/Games/). Any application running from within one of them will trigger Do Not Disturb, including Wine/Proton games (matched via their process's executable path and command line arguments).",
+    });
+
+    const enableToggle = new Gtk.Switch({
+      active: settings.getShouldDndOnDirectoriesList(),
+      valign: Gtk.Align.CENTER,
+    });
+
+    enableToggle.connect("state-set", (_, state) => {
+      settings.setShouldDndOnDirectoriesList(state);
+
+      return false;
+    });
+
+    expander.add_action(enableToggle);
+
+    const directoryRows: Adw.ActionRow[] = [];
+
+    const refreshDirectoryRows = () => {
+      for (const directoryRow of directoryRows) {
+        expander.remove(directoryRow);
+      }
+      directoryRows.length = 0;
+
+      for (const directory of settings.getDndDirectoriesList()) {
+        const directoryRow = new Adw.ActionRow({ title: directory });
+
+        const removeButton = new Gtk.Button({
+          icon_name: "list-remove-symbolic",
+          valign: Gtk.Align.CENTER,
+          css_classes: ["flat"],
+        });
+
+        removeButton.connect("clicked", () => {
+          settings.setDndDirectoriesList(
+            settings
+              .getDndDirectoriesList()
+              .filter((existingDirectory) => existingDirectory !== directory)
+          );
+          refreshDirectoryRows();
+        });
+
+        directoryRow.add_suffix(removeButton);
+        expander.add_row(directoryRow);
+        directoryRows.push(directoryRow);
+      }
+    };
+
+    const entryRow = new Adw.EntryRow({
+      title: "Add a directory (e.g. ~/Games/)",
+    });
+
+    const addDirectory = () => {
+      const value = entryRow.text.trim();
+
+      if (!value) {
+        return;
+      }
+
+      const existingDirectories = settings.getDndDirectoriesList();
+
+      if (
+        existingDirectories.some(
+          (directory) => directory.toLowerCase() === value.toLowerCase()
+        )
+      ) {
+        entryRow.text = "";
+        return;
+      }
+
+      settings.setDndDirectoriesList([...existingDirectories, value]);
+      entryRow.text = "";
+      refreshDirectoryRows();
+    };
+
+    const addButton = new Gtk.Button({
+      icon_name: "list-add-symbolic",
+      valign: Gtk.Align.CENTER,
+      css_classes: ["flat"],
+    });
+
+    addButton.connect("clicked", addDirectory);
+    entryRow.connect("entry-activated", addDirectory);
+    entryRow.add_suffix(addButton);
+
+    expander.add_row(entryRow);
+
+    refreshDirectoryRows();
 
     group.add(expander);
   }

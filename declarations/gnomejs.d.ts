@@ -64,3 +64,11 @@ declare module "gnomejs://prefs.js" {
     getSettings(uuid: string): Gio.Settings;
   }
 }
+
+declare module "@gi-ts/glib2" {
+  const GLib: {
+    get_home_dir: () => string;
+  };
+
+  export default GLib;
+}

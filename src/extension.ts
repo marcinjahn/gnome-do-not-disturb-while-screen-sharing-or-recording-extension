@@ -4,6 +4,8 @@ import { DoNotDisturbManager } from "dnd-manager";
 import {
   AppListNotifier,
   AppListStatus,
+  DirectoryListNotifier,
+  DirectoryListStatus,
   FullscreenNotifier,
   FullscreenStatus,
   ScreenRecordingNotifier,
@@ -18,6 +20,7 @@ enum DndReason {
   screenRecording = "screenRecording",
   fullscreen = "fullscreen",
   appsList = "appsList",
+  directoriesList = "directoriesList",
 }
 
 export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends Extension {
@@ -33,6 +36,8 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
   private _fullscreenSubId: number | null;
   private _appListNotifier: AppListNotifier | null;
   private _appListSubId: number | null;
+  private _directoryListNotifier: DirectoryListNotifier | null;
+  private _directoryListSubId: number | null;
 
   enable() {
     console.log(`Enabling extension ${this.uuid}`);
@@ -43,6 +48,7 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
     this._screenSharingNotifier = new ScreenSharingNotifier();
     this._fullscreenNotifier = new FullscreenNotifier();
     this._appListNotifier = new AppListNotifier();
+    this._directoryListNotifier = new DirectoryListNotifier();
     this._dndManager = new DoNotDisturbManager();
 
     this._screenRecordingSubId = this._screenRecordingNotifier.subscribe(
@@ -60,6 +66,11 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
     this._appListSubId = this._appListNotifier.subscribe(
       () => this._settings?.getDndAppsList() ?? [],
       this.handleAppList.bind(this)
+    );
+
+    this._directoryListSubId = this._directoryListNotifier.subscribe(
+      () => this._settings?.getDndDirectoriesList() ?? [],
+      this.handleDirectoriesList.bind(this)
     );
   }
 
@@ -106,6 +117,18 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
     }
 
     this.updateDndReason(DndReason.appsList, status === AppListStatus.running);
+  }
+
+  private handleDirectoriesList(status: DirectoryListStatus) {
+    if (!this._settings?.getShouldDndOnDirectoriesList()) {
+      this.updateDndReason(DndReason.directoriesList, false);
+      return;
+    }
+
+    this.updateDndReason(
+      DndReason.directoriesList,
+      status === DirectoryListStatus.running
+    );
   }
 
   /**
@@ -159,6 +182,12 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
       this._appListSubId = null;
     }
     this._appListNotifier = null;
+
+    if (this._directoryListSubId) {
+      this._directoryListNotifier?.unsubscribe(this._directoryListSubId);
+      this._directoryListSubId = null;
+    }
+    this._directoryListNotifier = null;
 
     this._activeDndReasons.clear();
 

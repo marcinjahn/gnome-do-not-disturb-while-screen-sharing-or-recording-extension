@@ -32,6 +32,12 @@ You are able to configure the following options:
   user-defined list is running (e.g. games). Applications are matched by their
   `WM_CLASS`, which can be found by running `xprop WM_CLASS` in a terminal and
   then clicking on the application's window.
+- Directories List - enables Do Not Disturb while any application running
+  from within a user-defined list of directories (e.g. `~/Games/`) is
+  running. This works by inspecting the process' executable path and command
+  line arguments, so it also covers Wine/Proton games launched from within
+  the directory. Detection for Wine/Proton games is best-effort, since how
+  much of the original path is exposed varies between Wine/Proton versions.
 
 ![Extension preferences](./img/preferences.png)
 
