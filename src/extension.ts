@@ -2,6 +2,12 @@ import { Extension } from "gnomejs://extension.js";
 
 import { DoNotDisturbManager } from "dnd-manager";
 import {
+  AppListNotifier,
+  AppListStatus,
+  DirectoryListNotifier,
+  DirectoryListStatus,
+  FullscreenNotifier,
+  FullscreenStatus,
   ScreenRecordingNotifier,
   ScreenRecordingStatus,
   ScreenSharingNotifier,
@@ -9,14 +15,29 @@ import {
 } from "./notifiers";
 import { SettingsManager, SettingsPath } from "settings-manager";
 
+enum DndReason {
+  screenSharing = "screenSharing",
+  screenRecording = "screenRecording",
+  fullscreen = "fullscreen",
+  appsList = "appsList",
+  directoriesList = "directoriesList",
+}
+
 export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends Extension {
   private _settings: SettingsManager | null = null;
   private _settingsSubscription: number | null = null;
   private _dndManager: DoNotDisturbManager | null = null;
+  private _activeDndReasons: Set<DndReason> = new Set<DndReason>();
   private _screenRecordingNotifier: ScreenRecordingNotifier | null;
   private _screenRecordingSubId: number | null;
   private _screenSharingNotifier: ScreenSharingNotifier | null;
   private _screenSharingSubId: number | null;
+  private _fullscreenNotifier: FullscreenNotifier | null;
+  private _fullscreenSubId: number | null;
+  private _appListNotifier: AppListNotifier | null;
+  private _appListSubId: number | null;
+  private _directoryListNotifier: DirectoryListNotifier | null;
+  private _directoryListSubId: number | null;
 
   enable() {
     console.log(`Enabling extension ${this.uuid}`);
@@ -25,6 +46,9 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
 
     this._screenRecordingNotifier = new ScreenRecordingNotifier();
     this._screenSharingNotifier = new ScreenSharingNotifier();
+    this._fullscreenNotifier = new FullscreenNotifier();
+    this._appListNotifier = new AppListNotifier();
+    this._directoryListNotifier = new DirectoryListNotifier();
     this._dndManager = new DoNotDisturbManager();
 
     this._screenRecordingSubId = this._screenRecordingNotifier.subscribe(
@@ -34,26 +58,93 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
     this._screenSharingSubId = this._screenSharingNotifier.subscribe(
       this.handleScreenSharing.bind(this)
     );
+
+    this._fullscreenSubId = this._fullscreenNotifier.subscribe(
+      this.handleFullscreen.bind(this)
+    );
+
+    this._appListSubId = this._appListNotifier.subscribe(
+      () => this._settings?.getDndAppsList() ?? [],
+      this.handleAppList.bind(this)
+    );
+
+    this._directoryListSubId = this._directoryListNotifier.subscribe(
+      () => this._settings?.getDndDirectoriesList() ?? [],
+      this.handleDirectoriesList.bind(this)
+    );
   }
 
   private handleScreenSharing(status: ScreenSharingStatus) {
     if (!this._settings?.getShouldDndOnScreenSharing()) {
+      this.updateDndReason(DndReason.screenSharing, false);
       return;
     }
 
-    if (status === ScreenSharingStatus.sharing) {
-      this._dndManager?.turnDndOn();
-    } else {
-      this._dndManager?.turnDndOff();
-    }
+    this.updateDndReason(
+      DndReason.screenSharing,
+      status === ScreenSharingStatus.sharing
+    );
   }
 
   private handleScreenRecording(status: ScreenRecordingStatus) {
     if (!this._settings?.getShouldDndOnScreenRecording()) {
+      this.updateDndReason(DndReason.screenRecording, false);
       return;
     }
 
-    if (status === ScreenRecordingStatus.recording) {
+    this.updateDndReason(
+      DndReason.screenRecording,
+      status === ScreenRecordingStatus.recording
+    );
+  }
+
+  private handleFullscreen(status: FullscreenStatus) {
+    if (!this._settings?.getShouldDndOnFullscreen()) {
+      this.updateDndReason(DndReason.fullscreen, false);
+      return;
+    }
+
+    this.updateDndReason(
+      DndReason.fullscreen,
+      status === FullscreenStatus.fullscreen
+    );
+  }
+
+  private handleAppList(status: AppListStatus) {
+    if (!this._settings?.getShouldDndOnAppsList()) {
+      this.updateDndReason(DndReason.appsList, false);
+      return;
+    }
+
+    this.updateDndReason(DndReason.appsList, status === AppListStatus.running);
+  }
+
+  private handleDirectoriesList(status: DirectoryListStatus) {
+    if (!this._settings?.getShouldDndOnDirectoriesList()) {
+      this.updateDndReason(DndReason.directoriesList, false);
+      return;
+    }
+
+    this.updateDndReason(
+      DndReason.directoriesList,
+      status === DirectoryListStatus.running
+    );
+  }
+
+  /**
+   * Keeps track of what is currently requesting Do Not Disturb to be on.
+   * DND is only switched off once none of the reasons are active anymore,
+   * so e.g. screen sharing ending doesn't turn DND off while a full-screen
+   * game from the apps list is still running.
+   */
+  private updateDndReason(reason: DndReason, active: boolean) {
+    if (active) {
+      this._activeDndReasons.add(reason);
+    } else {
+      this._activeDndReasons.delete(reason);
+    }
+
+    if (this._activeDndReasons.size > 0) {
       this._dndManager?.turnDndOn();
     } else {
       this._dndManager?.turnDndOff();
@@ -79,6 +170,26 @@ export default class DoNotDisturbWhileScreenSharingOrRecordingExtension extends 
       this._screenSharingSubId = null;
     }
     this._screenSharingNotifier = null;
+
+    if (this._fullscreenSubId) {
+      this._fullscreenNotifier?.unsubscribe(this._fullscreenSubId);
+      this._fullscreenSubId = null;
+    }
+    this._fullscreenNotifier = null;
+
+    if (this._appListSubId) {
+      this._appListNotifier?.unsubscribe(this._appListSubId);
+      this._appListSubId = null;
+    }
+    this._appListNotifier = null;
+
+    if (this._directoryListSubId) {
+      this._directoryListNotifier?.unsubscribe(this._directoryListSubId);
+      this._directoryListSubId = null;
+    }
+    this._directoryListNotifier = null;
+
+    this._activeDndReasons.clear();
 
     this._dndManager?.dispose();
     this._dndManager = null;

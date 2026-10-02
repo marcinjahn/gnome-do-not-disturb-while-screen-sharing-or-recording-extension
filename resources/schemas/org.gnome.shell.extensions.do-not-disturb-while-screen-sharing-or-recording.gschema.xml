@@ -11,5 +11,25 @@
       <default>true</default>
       <description>Decides whether Do Not Disturb should be automatically switched on while screen recording</description>
     </key>
+    <key name="dnd-on-fullscreen" type="b">
+      <default>false</default>
+      <description>Decides whether Do Not Disturb should be automatically switched on while any application is in full screen</description>
+    </key>
+    <key name="dnd-on-apps-list" type="b">
+      <default>false</default>
+      <description>Decides whether Do Not Disturb should be automatically switched on while any of the applications from dnd-apps-list is running</description>
+    </key>
+    <key name="dnd-apps-list" type="as">
+      <default>[]</default>
+      <description>List of applications (matched by WM_CLASS) that should switch Do Not Disturb on while running, e.g. games</description>
+    </key>
+    <key name="dnd-on-directories-list" type="b">
+      <default>false</default>
+      <description>Decides whether Do Not Disturb should be automatically switched on while a running application's process is located under any of the directories from dnd-directories-list</description>
+    </key>
+    <key name="dnd-directories-list" type="as">
+      <default>[]</default>
+      <description>List of directories (e.g. ~/Games/) whose applications, when running, should switch Do Not Disturb on. Matched against the process executable path and command line arguments, so this also covers Wine/Proton games launched from within the directory</description>
+    </key>
   </schema>
 </schemalist>
