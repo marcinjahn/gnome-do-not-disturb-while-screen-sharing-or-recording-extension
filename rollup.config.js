@@ -60,7 +60,10 @@ export default [
       copy({
         targets: [
           { src: "./resources/metadata.json", dest: `${buildPath}` },
-          { src: "./resources/schemas", dest: `${buildPath}` },
+          {
+            src: "./resources/schemas/*.xml",
+            dest: `${buildPath}/schemas`,
+          },
         ],
       }),
       cleanup({

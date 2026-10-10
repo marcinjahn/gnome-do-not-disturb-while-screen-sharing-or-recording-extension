@@ -7,7 +7,7 @@
     "prepare": "husky install",
     "clean": "rm -rf ./dist",
     "generate-gi-ts": "gi-ts generate && find ./@gi-ts -type f -exec sed -i '1i// @ts-nocheck' {} \\;",
-    "build": "glib-compile-schemas resources/schemas/ && npm run clean && rollup -c && npm run lint-dist",
+    "build": "glib-compile-schemas --strict --dry-run resources/schemas/ && npm run clean && rollup -c && npm run lint-dist",
     "lint-dist": "eslint -c .eslintrc.dist.json --fix dist/*.js",
     "start:dev:wayland": "npm run build && dbus-run-session -- gnome-shell --nested --wayland",
     "linkdist": "ln -s \"$PWD/dist\" \"$HOME/.local/share/gnome-shell/extensions/do-not-disturb-while-screen-sharing-or-recording@marcinjahn.com\"",
