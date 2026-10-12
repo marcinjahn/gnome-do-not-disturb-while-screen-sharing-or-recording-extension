@@ -1,6 +1,17 @@
 import Gio from "@gi-ts/gio2";
 import GLib from "@gi-ts/glib2";
 
+Gio._promisify(
+  Gio.File.prototype,
+  "query_info_async",
+  "query_info_finish"
+);
+Gio._promisify(
+  Gio.File.prototype,
+  "load_contents_async",
+  "load_contents_finish"
+);
+
 export class DirectoryListNotifier {
   private _display: Display | null = null;
   private _getDirectoriesList: (() => string[]) | null = null;
@@ -127,7 +138,8 @@ export class DirectoryListNotifier {
       const info = await file.query_info_async(
         Gio.FILE_ATTRIBUTE_STANDARD_SYMLINK_TARGET,
         Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
-        0
+        0,
+        null
       );
 
       return info.get_symlink_target();
@@ -139,7 +151,7 @@ export class DirectoryListNotifier {
   private async readCmdlineArgs(pid: number): Promise<string[]> {
     try {
       const file = Gio.File.new_for_path(`/proc/${pid}/cmdline`);
-      const [contents] = await file.load_contents_async();
+      const [contents] = await file.load_contents_async(null);
 
       const decoder = new TextDecoder("utf-8");
 
