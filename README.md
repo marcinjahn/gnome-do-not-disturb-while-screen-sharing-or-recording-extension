@@ -30,8 +30,13 @@ You are able to configure the following options:
   running in full screen
 - Specific Applications - enables Do Not Disturb while any application from a
   user-defined list is running (e.g. games). Applications are matched by their
-  `WM_CLASS`, which can be found by running `xprop WM_CLASS` in a terminal and
-  then clicking on the application's window.
+  window identifier (`WM_CLASS`, Wayland application ID, or sandboxed
+  application ID). To find it:
+  - On X11 or for an XWayland application, run `xprop WM_CLASS` in a terminal
+    and click the application's window.
+  - On Wayland, press <kbd>Alt</kbd>+<kbd>F2</kbd>, enter `lg` to open GNOME
+    Looking Glass, and use its **Windows** tab to find the application's
+    `wmclass` or application ID.
 - Directories List - enables Do Not Disturb while any application running
   from within a user-defined list of directories (e.g. `~/Games/`) is
   running. This works by inspecting the process' executable path and command

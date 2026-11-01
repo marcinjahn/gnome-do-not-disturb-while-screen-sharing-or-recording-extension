@@ -1,6 +1,7 @@
 export class AppListNotifier {
   private _display: Display | null = null;
   private _getAppsList: (() => string[]) | null = null;
+  private _pendingWindows: Map<Window, number[]> = new Map<Window, number[]>();
   private _trackedWindows: Map<number, Window> = new Map<number, Window>();
 
   subscribe(
@@ -33,14 +34,24 @@ export class AppListNotifier {
     window: Window,
     handler: (status: AppListStatus) => void
   ) {
-    let notifyIds: number[] = [];
+    let pendingSignalIds: number[] = [];
     let unmanagingId: number | null = null;
+    let matched = false;
 
-    const registerMatch = () => {
-      for (const id of notifyIds) {
+    const disconnectPendingSignals = () => {
+      for (const id of pendingSignalIds) {
         window.disconnect(id);
       }
-      notifyIds = [];
+      pendingSignalIds = [];
+      this._pendingWindows.delete(window);
+    };
+
+    const registerMatch = () => {
+      if (matched) {
+        return;
+      }
+      matched = true;
+      disconnectPendingSignals();
 
       unmanagingId = window.connect("unmanaging", () => {
         window.disconnect(unmanagingId!);
@@ -67,15 +78,16 @@ export class AppListNotifier {
       }
     };
 
-    notifyIds.push(window.connect("notify::wm-class", tryMatch));
-    notifyIds.push(window.connect("notify::gtk-application-id", tryMatch));
+    pendingSignalIds.push(window.connect("notify::wm-class", tryMatch));
+    pendingSignalIds.push(
+      window.connect("notify::gtk-application-id", tryMatch)
+    );
 
     const cleanupUnmanagingId = window.connect("unmanaging", () => {
-      for (const id of notifyIds) {
-        window.disconnect(id);
-      }
-      window.disconnect(cleanupUnmanagingId);
+      disconnectPendingSignals();
     });
+    pendingSignalIds.push(cleanupUnmanagingId);
+    this._pendingWindows.set(window, pendingSignalIds);
   }
 
   private matchesAppsList(window: Window): boolean {
@@ -103,6 +115,13 @@ export class AppListNotifier {
 
   unsubscribe(subscriptionId: number) {
     this._display?.disconnect(subscriptionId);
+
+    for (const [window, signalIds] of this._pendingWindows) {
+      for (const id of signalIds) {
+        window.disconnect(id);
+      }
+    }
+    this._pendingWindows.clear();
 
     for (const [unmanagingId, window] of this._trackedWindows) {
       window.disconnect(unmanagingId);

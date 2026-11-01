@@ -1,10 +1,23 @@
 import Gio from "@gi-ts/gio2";
 import GLib from "@gi-ts/glib2";
 
+Gio._promisify(
+  Gio.File.prototype,
+  "query_info_async",
+  "query_info_finish"
+);
+Gio._promisify(
+  Gio.File.prototype,
+  "load_contents_async",
+  "load_contents_finish"
+);
+
 export class DirectoryListNotifier {
   private _display: Display | null = null;
   private _getDirectoriesList: (() => string[]) | null = null;
+  private _pendingWindows: Map<number, Window> = new Map<number, Window>();
   private _trackedWindows: Map<number, Window> = new Map<number, Window>();
+  private _active = false;
 
   subscribe(
     getDirectoriesList: () => string[],
@@ -12,8 +25,10 @@ export class DirectoryListNotifier {
   ): number | null {
     this._display = global.display;
     this._getDirectoriesList = getDirectoriesList;
+    this._active = true;
 
     if (!this._display) {
+      this._active = false;
       console.warn(
         "Subscription to directories list status failed, the display cannot be retrieved"
       );
@@ -21,26 +36,48 @@ export class DirectoryListNotifier {
     }
 
     return this._display.connect("window-created", (_, window: Window) => {
-      if (!this.matchesDirectoriesList(window)) {
-        return;
-      }
-
-      const unmanagingId = window.connect("unmanaging", () => {
-        window.disconnect(unmanagingId);
-        this._trackedWindows.delete(unmanagingId);
-
-        if (this._trackedWindows.size === 0) {
-          handler(DirectoryListStatus.notRunning);
-        }
-      });
-
-      this._trackedWindows.set(unmanagingId, window);
-
-      handler(DirectoryListStatus.running);
+      void this.trackWindow(window, handler);
     });
   }
 
-  private matchesDirectoriesList(window: Window): boolean {
+  private async trackWindow(
+    window: Window,
+    handler: (status: DirectoryListStatus) => void
+  ) {
+    let unmanaged = false;
+    const unmanagingId = window.connect("unmanaging", () => {
+      unmanaged = true;
+      window.disconnect(unmanagingId);
+      this._pendingWindows.delete(unmanagingId);
+
+      if (
+        this._trackedWindows.delete(unmanagingId) &&
+        this._trackedWindows.size === 0
+      ) {
+        handler(DirectoryListStatus.notRunning);
+      }
+    });
+
+    this._pendingWindows.set(unmanagingId, window);
+
+    const matches = await this.matchesDirectoriesList(window);
+
+    if (unmanaged || !this._active) {
+      return;
+    }
+
+    this._pendingWindows.delete(unmanagingId);
+
+    if (!matches) {
+      window.disconnect(unmanagingId);
+      return;
+    }
+
+    this._trackedWindows.set(unmanagingId, window);
+    handler(DirectoryListStatus.running);
+  }
+
+  private async matchesDirectoriesList(window: Window): Promise<boolean> {
     const directories = (this._getDirectoriesList?.() ?? [])
       .map((dir) => this.normalizeDirectory(dir))
       .filter((dir): dir is string => !!dir);
@@ -55,7 +92,7 @@ export class DirectoryListNotifier {
       return false;
     }
 
-    const candidates = this.getProcessCandidates(pid);
+    const candidates = await this.getProcessCandidates(pid);
 
     return candidates.some((candidate) =>
       directories.some((dir) => candidate.startsWith(dir))
@@ -72,16 +109,19 @@ export class DirectoryListNotifier {
    * backslashes, so a normalized (forward-slash, no drive letter) variant
    * of each candidate is also included.
    */
-  private getProcessCandidates(pid: number): string[] {
+  private async getProcessCandidates(pid: number): Promise<string[]> {
     const candidates: string[] = [];
 
-    const exePath = this.resolveExePath(pid);
+    const [exePath, cmdlineArgs] = await Promise.all([
+      this.resolveExePath(pid),
+      this.readCmdlineArgs(pid),
+    ]);
 
     if (exePath) {
       candidates.push(exePath);
     }
 
-    candidates.push(...this.readCmdlineArgs(pid));
+    candidates.push(...cmdlineArgs);
 
     const normalizedVariants = candidates
       .map((candidate) => this.normalizeWineStylePath(candidate))
@@ -92,12 +132,13 @@ export class DirectoryListNotifier {
     );
   }
 
-  private resolveExePath(pid: number): string | null {
+  private async resolveExePath(pid: number): Promise<string | null> {
     try {
       const file = Gio.File.new_for_path(`/proc/${pid}/exe`);
-      const info = file.query_info(
+      const info = await file.query_info_async(
         Gio.FILE_ATTRIBUTE_STANDARD_SYMLINK_TARGET,
         Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+        0,
         null
       );
 
@@ -107,14 +148,10 @@ export class DirectoryListNotifier {
     }
   }
 
-  private readCmdlineArgs(pid: number): string[] {
+  private async readCmdlineArgs(pid: number): Promise<string[]> {
     try {
       const file = Gio.File.new_for_path(`/proc/${pid}/cmdline`);
-      const [success, contents] = file.load_contents(null);
-
-      if (!success) {
-        return [];
-      }
+      const [contents] = await file.load_contents_async(null);
 
       const decoder = new TextDecoder("utf-8");
 
@@ -154,7 +191,13 @@ export class DirectoryListNotifier {
   }
 
   unsubscribe(subscriptionId: number) {
+    this._active = false;
     this._display?.disconnect(subscriptionId);
+
+    for (const [unmanagingId, window] of this._pendingWindows) {
+      window.disconnect(unmanagingId);
+    }
+    this._pendingWindows.clear();
 
     for (const [unmanagingId, window] of this._trackedWindows) {
       window.disconnect(unmanagingId);
